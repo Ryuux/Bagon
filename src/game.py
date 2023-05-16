@@ -1,36 +1,46 @@
-import pygame 
-from utils.constants import __CONFIG__
+import pygame
+from entities.player import Player
+from utils.constants import __SCREEN__
 
-WIDTH = __CONFIG__['width']
-HEIGHT = __CONFIG__['height']
-FPS = __CONFIG__['fps']
+WIDTH = __SCREEN__['width']
+HEIGHT = __SCREEN__['height']
+FPS = __SCREEN__['fps']
 
 class Game:
     def __init__(self):
-        self.screen = pygame.display.set_mode([WIDTH, HEIGHT])
-        self.running = True
-
         pygame.init()
+        self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption('Game')
+        self.clock = pygame.time.Clock()
+        self.running = True
+        self.player = Player(50, 50)
 
     def quit(self):
         self.running = False
 
+    def handle_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.quit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    self.quit()
+                elif event.key == pygame.K_SPACE:
+                    self.player.jump()
+
     def update(self):
-        events = pygame.event.get()
-        event_handlers = {
-            pygame.QUIT: self.quit,
-            pygame.KEYDOWN: lambda event: self.quit() if event.key == pygame.K_ESCAPE else None
-        }
-        for event in events:
-            handler = event_handlers.get(event.type)
-            if handler:
-                handler(event)
+        self.handle_events()
+        self.player.update(HEIGHT)
+
+    def render(self):
+        self.screen.fill((0, 0, 0))
+        self.screen.blit(self.player.image, self.player.rect)
+        pygame.display.flip()
 
     def run(self):
-        clock = pygame.time.Clock()
         while self.running:
             self.update()
-            clock.tick(FPS)
-        
+            self.render()
+            self.clock.tick(FPS)
+
         pygame.quit()
